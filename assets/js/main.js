@@ -16,12 +16,25 @@ const navHeight = () => document.querySelector('.nav')?.offsetHeight ?? 64;
 // MARK: Smooth scrolling
 
 let lenis = null;
+const lenisFrame = (time) => lenis?.raf(time * 1000);
 if (!reduceMotion) {
   lenis = new Lenis({ lerp: 0.11, wheelMultiplier: 0.9 });
   lenis.on('scroll', ScrollTrigger.update);
-  gsap.ticker.add((time) => lenis.raf(time * 1000));
+  gsap.ticker.add(lenisFrame);
   gsap.ticker.lagSmoothing(0);
 }
+
+// Lenis moves the page from the frame loop: on a computer whose frames come
+// slowly the page would stop with them. The browser's own scrolling never
+// waits for a frame.
+const useNativeScrolling = () => {
+  if (!lenis) return;
+  gsap.ticker.remove(lenisFrame);
+  lenis.destroy();
+  lenis = null;
+  gsap.ticker.lagSmoothing(500, 33);
+  ScrollTrigger.refresh();
+};
 
 for (const link of document.querySelectorAll('a[href^="#"]')) {
   link.addEventListener('click', (event) => {
@@ -41,6 +54,18 @@ let stage = null;
 try {
   stage = new Stage(canvas, {
     reduceMotion,
+    // Frames too slow: native scrolling first, then a lower resolution,
+    // and on a computer, the picture of the controller once even the
+    // lowest is too slow. A phone keeps the 3D: its layout has no
+    // picture, and its scrolling is the browser's anyway.
+    onQuality: (ratio) => {
+      useNativeScrolling();
+      if (ratio === 0 && wide()) {
+        stage.stop();
+        root.classList.remove('stage-ready');
+        root.classList.add('no-stage');
+      }
+    },
     // Where the model is framed: the right of the page on a wide window,
     // the upper half on a narrow one, like the app's free area.
     frame: () => wide()

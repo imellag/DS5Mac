@@ -1,6 +1,8 @@
 // The 3D controller of the website: the app's own stage (camera, poses,
 // moving parts) in three.js. The page tells it which pose to show and
-// which effect to play; it draws only while something can be seen.
+// which effect to play. It draws only while something can be seen and
+// something moves, like the app's resting stage (ADR-0024), and lowers
+// its resolution on a computer that cannot keep up.
 //
 // Poses are the app's (DS5Mac/UI/DesignSystem/DesignTokens.swift,
 // ScenePoses): degrees, meters, and millimeters of the model, with +X to
@@ -22,6 +24,17 @@ export const POSES = {
 };
 
 const FIELD_OF_VIEW = 30;
+/// Pixels drawn at most: a large window at 2x would draw far more than the
+/// eye can tell apart on a model this size.
+const PIXEL_BUDGET = 4.5e6;
+/// The resolutions tried in turn while frames come too slowly.
+const PIXEL_RATIOS = [2, 1.5, 1];
+/// Frames measured before judging, the ones skipped after each change, and
+/// the median time between frames, in milliseconds, judged too slow
+/// (about 35 frames per second).
+const QUALITY_SAMPLES = 45;
+const QUALITY_WARMUP = 15;
+const SLOW_FRAME = 28;
 const CAMERA_Z = 0.5;
 const ACCENT = new THREE.Color(0x3cc8f4);
 const srgb = (r, g, b) => new THREE.Color().setRGB(r, g, b, THREE.SRGBColorSpace);
@@ -80,7 +93,10 @@ const follow = (current, target, timeConstant, dt) => target + (current - target
 export class Stage {
   /// `frame()` returns the free area the model is framed in, in CSS pixels
   /// of the viewport: { x, y, width, height }.
-  constructor(canvas, { frame, reduceMotion }) {
+  ///
+  /// `onQuality(ratio)` is told every time the resolution goes down, with
+  /// 0 once the lowest is still too slow.
+  constructor(canvas, { frame, reduceMotion, onQuality }) {
     this.canvas = canvas;
     this.frame = frame;
     this.reduceMotion = reduceMotion;
@@ -91,8 +107,17 @@ export class Stage {
     this.turn = 0;
     this.visible = true;
     this.ready = false;
+    this.stopped = false;
+    this.onQuality = onQuality;
+    this.maxPixelRatio = PIXEL_RATIOS[0];
+    this.samples = [];
+    this.warmup = QUALITY_WARMUP;
 
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'low-power' });
+    // Without a graphics processor (a browser drawing WebGL in software)
+    // this fails, and the page keeps its picture of the controller.
+    this.renderer = new THREE.WebGLRenderer({
+      canvas, antialias: true, alpha: true, powerPreference: 'low-power', failIfMajorPerformanceCaveat: true,
+    });
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.NeutralToneMapping;
     this.renderer.toneMappingExposure = 1.05;
@@ -162,7 +187,8 @@ export class Stage {
     this.setLightbar(LIGHTBAR_COLORS[0]);
     this.setPlayerLEDs(0b00100);
     this.ready = true;
-    this.lastTime = performance.now();
+    this.lastTime = null;
+    this.resize();
     this.loop();
   }
 
@@ -170,6 +196,7 @@ export class Stage {
   show(name) {
     this.wanted = POSES[name] ?? POSES.home;
     if (this.reduceMotion) this.snap();
+    this.loop();
   }
 
   /// Plays `name` ("lights", "triggers", "vibration", "live", "turn") or
@@ -179,11 +206,13 @@ export class Stage {
     this.effect = name;
     this.effectTime = 0;
     this.resetParts();
+    this.loop();
   }
 
   setPointer(x, y) {
     this.pointer.x = x;
     this.pointer.y = y;
+    this.loop();
   }
 
   setVisible(visible) {
@@ -196,29 +225,85 @@ export class Stage {
     Object.assign(this.shown, { pitch: w.pitch, yaw: w.yaw, distance: w.distance, fit: w.fit, target: [...w.target] });
   }
 
+  /// Stops drawing for good: the page shows its picture instead.
+  stop() {
+    this.stopped = true;
+    if (this.frameRequest) cancelAnimationFrame(this.frameRequest);
+    this.frameRequest = null;
+  }
+
   resize() {
     const width = window.innerWidth, height = window.innerHeight;
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    const budget = Math.sqrt(PIXEL_BUDGET / (width * height));
+    this.pixelRatio = Math.max(Math.min(window.devicePixelRatio, this.maxPixelRatio, budget), 1);
+    this.renderer.setPixelRatio(this.pixelRatio);
     this.renderer.setSize(width, height, false);
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
     this.viewHeight = height;
     this.viewWidth = width;
+    if (!this.ready) return;
+    this.update(0);
     this.render();
   }
 
   // MARK: Frame
 
+  /// Draws frame after frame until the model is still, then rests until
+  /// the page asks for something (a pose, an effect, the pointer).
   loop() {
-    if (this.frameRequest || !this.ready || !this.visible || document.hidden) return;
+    if (this.frameRequest || this.stopped || !this.ready || !this.visible || document.hidden) return;
     this.frameRequest = requestAnimationFrame((time) => {
       this.frameRequest = null;
-      const dt = Math.min((time - (this.lastTime ?? time)) / 1000, 0.1);
+      // The first frame after a rest has no time before it to measure.
+      const delta = this.lastTime == null ? null : time - this.lastTime;
       this.lastTime = time;
-      this.update(dt);
+      this.update(delta == null ? 1 / 60 : Math.min(delta / 1000, 0.1));
       this.render();
+      if (delta != null) this.measure(delta);
+      if (this.isStill()) {
+        this.lastTime = null;
+        return;
+      }
       this.loop();
     });
+  }
+
+  /// Nothing playing and everything arrived where it was going.
+  isStill() {
+    if (this.effect && !(this.effect === 'turn' && this.reduceMotion)) return false;
+    const near = (a, b, tolerance) => Math.abs(a - b) < tolerance;
+    const s = this.shown, w = this.wanted;
+    return near(s.pitch, w.pitch, 0.01) && near(s.yaw, w.yaw, 0.01)
+      && near(s.distance, w.distance, 1e-5) && near(s.fit, w.fit, 0.01)
+      && s.target.every((value, i) => near(value, w.target[i], 0.01))
+      && near(this.tilt.x, this.tiltGoal.x, 0.01) && near(this.tilt.y, this.tiltGoal.y, 0.01)
+      && near(this.turn, Math.round(this.turn / (2 * Math.PI)) * 2 * Math.PI, 1e-4);
+  }
+
+  /// The time between frames, judged on its median so that one hitch
+  /// (a texture made, a chapter's first frame) does not count.
+  measure(delta) {
+    if (this.warmup > 0) {
+      this.warmup--;
+      return;
+    }
+    this.samples.push(delta);
+    if (this.samples.length < QUALITY_SAMPLES) return;
+    const median = this.samples.sort((a, b) => a - b)[Math.floor(this.samples.length / 2)];
+    this.samples = [];
+    if (median <= SLOW_FRAME) return;
+    const lower = PIXEL_RATIOS.find((ratio) => ratio < this.pixelRatio - 0.01);
+    if (lower) {
+      this.maxPixelRatio = lower;
+      this.resize();
+      this.warmup = QUALITY_WARMUP;
+      this.onQuality?.(lower);
+    } else {
+      // Nothing lower to try: stop measuring and let the page decide.
+      this.warmup = Infinity;
+      this.onQuality?.(0);
+    }
   }
 
   update(dt) {
@@ -233,6 +318,7 @@ export class Stage {
 
     // The pointer tilts the model a few degrees; the profiles chapter turns it.
     const tiltGoal = this.reduceMotion ? { x: 0, y: 0 } : { x: this.pointer.y * 6, y: this.pointer.x * 10 };
+    this.tiltGoal = tiltGoal;
     this.tilt.x = follow(this.tilt.x, tiltGoal.x, 0.5, dt);
     this.tilt.y = follow(this.tilt.y, tiltGoal.y, 0.5, dt);
     if (this.effect === 'turn' && !this.reduceMotion) this.turn += radians(12) * dt;
@@ -346,7 +432,10 @@ export class Stage {
   /// `mask` bit 0 is the player's leftmost LED. An unlit LED matches the
   /// dark stretches of the line around it.
   setPlayerLEDs(mask) {
-    if (!this.lights) return;
+    // Called every frame by the lights effect: a new map would make three.js
+    // check the material again each time.
+    if (!this.lights || mask === this.ledMask) return;
+    this.ledMask = mask;
     for (let i = 0; i < 5; i++) {
       const on = (mask >> i) & 1;
       for (const mesh of this.meshes(`PlayerLED_${i + 1}`)) mesh.material = on ? this.lights.ledOn : this.lights.ledOff;
@@ -405,13 +494,18 @@ export class Stage {
       if (!mesh.isMesh) return;
       mesh.userData.normalMaterial ??= mesh.material;
       if (down) {
-        const glowing = (Array.isArray(mesh.userData.normalMaterial) ? mesh.userData.normalMaterial : [mesh.userData.normalMaterial]).map((m) => {
-          const copy = m.clone();
-          copy.emissive = ACCENT.clone();
-          copy.emissiveIntensity = 0.6;
-          return copy;
-        });
-        mesh.material = glowing.length === 1 ? glowing[0] : glowing;
+        // Made once per part and kept: the live chapter presses a button
+        // twice a second.
+        mesh.userData.pressedMaterial ??= (() => {
+          const glowing = (Array.isArray(mesh.userData.normalMaterial) ? mesh.userData.normalMaterial : [mesh.userData.normalMaterial]).map((m) => {
+            const copy = m.clone();
+            copy.emissive = ACCENT.clone();
+            copy.emissiveIntensity = 0.6;
+            return copy;
+          });
+          return glowing.length === 1 ? glowing[0] : glowing;
+        })();
+        mesh.material = mesh.userData.pressedMaterial;
       } else {
         mesh.material = mesh.userData.normalMaterial;
       }
