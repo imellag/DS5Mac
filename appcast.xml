@@ -3,6 +3,20 @@
     <channel>
         <title>DS5Mac</title>
         <item>
+            <title>1.0.1</title>
+            <pubDate>Thu, 12 Nov 2026 19:00:54 +0100</pubDate>
+            <link>https://imellag.github.io/DS5Mac/</link>
+            <sparkle:version>2</sparkle:version>
+            <sparkle:shortVersionString>1.0.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<h2>DS5Mac 1.0.1</h2>
+<ul>
+<li>Bug reports and feedback go through the report form on GitHub: Help › Report a Bug… fills in the details for you. The email item is gone from the Help menu.</li>
+</ul>
+]]></description>
+            <enclosure url="https://github.com/imellag/DS5Mac/releases/download/v1.0.1/DS5Mac.dmg" length="14967716" type="application/octet-stream" sparkle:edSignature="qCPX2f4E34EYPL++lBCeyfD6lh2GpuYFxQmiFSD68qxbPAeD0qVRwm514XPfn2100OhiE2PllQ2lUDc1JavvCg=="/>
+        </item>
+        <item>
             <title>1.0</title>
             <pubDate>Thu, 12 Nov 2026 18:34:48 +0100</pubDate>
             <link>https://imellag.github.io/DS5Mac/</link>
