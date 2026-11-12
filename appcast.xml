@@ -1,0 +1,27 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>DS5Mac</title>
+        <item>
+            <title>1.0</title>
+            <pubDate>Thu, 12 Nov 2026 18:34:48 +0100</pubDate>
+            <link>https://imellag.github.io/DS5Mac/</link>
+            <sparkle:version>1</sparkle:version>
+            <sparkle:shortVersionString>1.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<h2>DS5Mac 1.0</h2>
+<p>The first release.</p>
+<ul>
+<li>A live 3D view of the controller: every button, stick, trigger and the touchpad as you use them, tilting with the controller.</li>
+<li>Lights: lightbar color and brightness, player LEDs, microphone LED.</li>
+<li>Adaptive triggers: resistance, clicks and ramps on L2 and R2.</li>
+<li>Vibration test, with patterns and intensity.</li>
+<li>Profiles that switch by themselves for each game, or by connection.</li>
+<li>Settings stay on in the background; DS5Mac waits in the menu bar and warns you when the battery is low.</li>
+<li>English and Italian.</li>
+</ul>
+]]></description>
+            <enclosure url="https://github.com/imellag/DS5Mac/releases/download/v1.0/DS5Mac.dmg" length="14968810" type="application/octet-stream" sparkle:edSignature="rQ7hZBhYKSrAMdBHZ5UJrnE63PNaE03lM6+suYSo+v8qrB0lkitql3a0klIIelzt9bVJoQ6Uu/ZIMaxffLs8AA=="/>
+        </item>
+    </channel>
+</rss>

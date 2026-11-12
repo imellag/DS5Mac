@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://imellag.github.io/DS5Mac/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://imellag.github.io/DS5Mac/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://imellag.github.io/DS5Mac/it/"/>
+    <lastmod>2026-11-12</lastmod>
+  </url>
+  <url>
+    <loc>https://imellag.github.io/DS5Mac/it/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://imellag.github.io/DS5Mac/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://imellag.github.io/DS5Mac/it/"/>
+    <lastmod>2026-11-12</lastmod>
+  </url>
+  <url>
+    <loc>https://imellag.github.io/DS5Mac/changelog/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://imellag.github.io/DS5Mac/changelog/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://imellag.github.io/DS5Mac/it/changelog/"/>
+    <lastmod>2026-11-12</lastmod>
+  </url>
+  <url>
+    <loc>https://imellag.github.io/DS5Mac/it/changelog/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://imellag.github.io/DS5Mac/changelog/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://imellag.github.io/DS5Mac/it/changelog/"/>
+    <lastmod>2026-11-12</lastmod>
+  </url>
+</urlset>

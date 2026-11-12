@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DS5Mac · L'app per il controller DualSense PS5 su Mac</title>
+  <meta name="description" content="DS5Mac è un'app gratuita per Mac per il controller DualSense della PS5: cambia il colore della lightbar, imposta i grilletti adattivi, prova la vibrazione e guarda ogni tasto dal vivo in 3D. macOS 15 o successivo.">
+  <link rel="canonical" href="https://imellag.github.io/DS5Mac/it/">
+  <link rel="alternate" hreflang="en" href="https://imellag.github.io/DS5Mac/">
+  <link rel="alternate" hreflang="it" href="https://imellag.github.io/DS5Mac/it/">
+  <link rel="alternate" hreflang="x-default" href="https://imellag.github.io/DS5Mac/">
+  <meta name="theme-color" content="#07080c">
+  <link rel="icon" href="../assets/icon.png">
+  <link rel="apple-touch-icon" href="../assets/icon.png">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="DS5Mac">
+  <meta property="og:title" content="DS5Mac · L'app per il controller DualSense PS5 su Mac">
+  <meta property="og:description" content="Lightbar, grilletti adattivi, vibrazione e il tuo controller dal vivo in 3D. Gratis.">
+  <meta property="og:url" content="https://imellag.github.io/DS5Mac/it/">
+  <meta property="og:image" content="https://imellag.github.io/DS5Mac/assets/og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="it_IT">
+  <meta property="og:locale:alternate" content="en_US">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="stylesheet" href="../assets/vendor/lenis/lenis.css">
+  <link rel="stylesheet" href="../assets/css/site.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "DS5Mac",
+    "description": "Un'app gratuita per Mac per il controller DualSense della PS5: lightbar, LED giocatore, grilletti adattivi, prova della vibrazione, profili per gioco e una vista 3D dal vivo.",
+    "operatingSystem": "macOS 15.0 o successivo",
+    "applicationCategory": "UtilitiesApplication",
+    "softwareVersion": "1.0",
+    "url": "https://imellag.github.io/DS5Mac/it/",
+    "downloadUrl": "https://github.com/imellag/DS5Mac/releases/latest/download/DS5Mac.dmg",
+    "image": "https://imellag.github.io/DS5Mac/assets/og.jpg",
+    "screenshot": "https://imellag.github.io/DS5Mac/assets/home.jpg",
+    "inLanguage": ["it", "en"],
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "Posso usare il controller della PS5 su Mac?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Sì. macOS supporta il DualSense via Bluetooth e USB, e i giochi lo usano come qualsiasi controller. Quello che macOS non offre è un modo per cambiarne la lightbar, i grilletti adattivi o i LED: è quello che aggiunge DS5Mac." } },
+      { "@type": "Question", "name": "Come collego il DualSense al Mac?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Via Bluetooth: tieni premuti i tasti PS e Crea finché la lightbar lampeggia, poi scegli DualSense Wireless Controller in Impostazioni di Sistema, Bluetooth. Via USB: collega un cavo USB-C." } },
+      { "@type": "Question", "name": "Le impostazioni restano attive mentre gioco?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Sì. DS5Mac continua ad applicarle in secondo piano, con il gioco davanti. Se un gioco imposta da sé le luci o i grilletti, vale la sua impostazione finché la usa." } },
+      { "@type": "Question", "name": "DS5Mac può cambiare la vibrazione dei giochi?",
+        "acceptedAnswer": { "@type": "Answer", "text": "No. macOS non permette a un'altra app di cambiare quello che un gioco manda ai motori. DS5Mac prova i due motori e regola la forza dei propri effetti." } },
+      { "@type": "Question", "name": "DS5Mac è gratis? Raccoglie dati?",
+        "acceptedAnswer": { "@type": "Answer", "text": "È gratis, senza account, senza pubblicità e senza statistiche. L'unica connessione è il controllo giornaliero degli aggiornamenti, che non invia dati personali." } },
+      { "@type": "Question", "name": "Su quali Mac funziona?",
+        "acceptedAnswer": { "@type": "Answer", "text": "macOS 15 Sequoia o successivo, su Mac con Apple Silicon o Intel." } },
+      { "@type": "Question", "name": "Come disinstallo DS5Mac?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Chiudila dal suo pannello nella barra dei menu e sposta l'app da Applicazioni al Cestino. Le sue impostazioni sono nella cartella Libreria/Containers/com.imellag.DS5Mac della tua cartella Inizio." } }
+    ]
+  }
+  </script>
+
+  <script type="importmap">
+  { "imports": {
+      "three": "../assets/vendor/three/build/three.module.min.js",
+      "three/addons/": "../assets/vendor/three/addons/"
+  } }
+  </script>
+  <script src="../assets/vendor/gsap/gsap.min.js" defer></script>
+  <script src="../assets/vendor/gsap/ScrollTrigger.min.js" defer></script>
+  <script src="../assets/vendor/lenis/lenis.min.js" defer></script>
+  <script type="module" src="../assets/js/main.js"></script>
+</head>
+<body>
+<a class="skip" href="#download">Vai al download</a>
+
+<nav class="nav" aria-label="Principale">
+  <a class="brand" href="#top"><img src="../assets/icon.png" alt="" width="28" height="28">DS5Mac</a>
+  <div class="links">
+    <a href="#lights">Funzioni</a>
+    <a href="#faq">Domande</a>
+    <a href="changelog/">Novità</a>
+    <a class="lang" href="../" hreflang="en" lang="en">English</a>
+  </div>
+  <a class="button" href="#download">Scarica</a>
+</nav>
+
+<canvas id="stage" aria-hidden="true"></canvas>
+<img class="poster" src="../assets/poster.png" alt="" aria-hidden="true">
+
+<nav class="progress" aria-label="Capitoli">
+  <a href="#top"><span>Inizio</span></a>
+  <a href="#lights"><span>Luci</span></a>
+  <a href="#triggers"><span>Grilletti adattivi</span></a>
+  <a href="#vibration"><span>Vibrazione</span></a>
+  <a href="#live"><span>Vista dal vivo</span></a>
+  <a href="#profiles"><span>Profili</span></a>
+  <a href="#download"><span>Download</span></a>
+</nav>
+
+<main id="top">
+  <section class="hero" data-pose="hero" id="hero">
+    <div class="copy">
+      <h1 class="reveal">Il tuo DualSense, di casa sul Mac.</h1>
+      <p class="lead reveal">Cambia la lightbar, dai resistenza ai grilletti, prova la vibrazione e guarda ogni pressione dal vivo su un modello 3D del tuo controller.</p>
+      <div class="reveal">
+        <a class="button" href="https://github.com/imellag/DS5Mac/releases/latest/download/DS5Mac.dmg">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M6 11l6 6 6-6M5 20h14"/></svg>
+          Scarica per Mac
+        </a>
+        <p class="meta">Versione 1.0 · macOS 15 o successivo · Apple Silicon e Intel</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="story">
+  <div class="story-track">
+  <section class="chapter" id="lights" data-pose="lights" data-effect="lights">
+    <div class="copy">
+      <span class="eyebrow reveal">01 · Luci</span>
+      <h2 class="reveal">Il colore che vuoi.</h2>
+      <p class="reveal">Scegli colore e luminosità della lightbar, oppure lasciala cambiare colore da sola. Decidi quali LED giocatore accendere, e accendi il LED del microfono o fallo pulsare.</p>
+      <ul class="points reveal">
+        <li>Colori pronti, o qualsiasi colore dal selettore</li>
+        <li>I LED giocatore in tutte le combinazioni che il controller permette</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="chapter" id="triggers" data-pose="triggers" data-effect="triggers">
+    <div class="copy">
+      <span class="eyebrow reveal">02 · Grilletti adattivi</span>
+      <h2 class="reveal">Lo senti mentre lo imposti.</h2>
+      <p class="reveal">Dai a L2 e R2 una resistenza costante, uno scatto come un grilletto, la tensione di un arco, o una rampa che cresce mentre premi. Un grafico segue il grilletto vero mentre provi.</p>
+      <ul class="points reveal">
+        <li>Effetti pronti, e uno personalizzato con le maniglie</li>
+        <li>I due grilletti insieme, o ognuno per conto suo</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="chapter" id="vibration" data-pose="vibration" data-effect="vibration">
+    <div class="copy">
+      <span class="eyebrow reveal">03 · Vibrazione</span>
+      <h2 class="reveal">Prova i due motori.</h2>
+      <p class="reveal">Fai partire un impulso, un battito, una rampa o una vibrazione continua sul motore sinistro, sul destro o su entrambi, e guardala partire dalle impugnature sullo schermo.</p>
+    </div>
+  </section>
+
+  <section class="chapter" id="live" data-pose="home" data-effect="live">
+    <div class="copy">
+      <span class="eyebrow reveal">04 · Vista dal vivo</span>
+      <h2 class="reveal">Ogni pressione, mentre succede.</h2>
+      <p class="reveal">Tasti, levette, grilletti e touchpad si muovono sul modello mentre li usi. Inclina il controller e il modello si inclina con lui. Fai clic su una parte per aprirne le impostazioni.</p>
+    </div>
+  </section>
+
+  <section class="chapter" id="profiles" data-pose="profiles" data-effect="turn">
+    <div class="copy">
+      <span class="eyebrow reveal">05 · Profili</span>
+      <h2 class="reveal">Un profilo per ogni gioco.</h2>
+      <p class="reveal">Impostazioni che cambiano da sole quando un gioco passa in primo piano, o quando colleghi il cavo. Un profilo cambia solo quello che scegli e lascia il resto com'è.</p>
+      <ul class="points reveal">
+        <li>Le impostazioni restano attive in secondo piano, mentre giochi</li>
+        <li>DS5Mac aspetta nella barra dei menu, con il livello della batteria</li>
+        <li>Un avviso quando la batteria si sta scaricando</li>
+      </ul>
+    </div>
+  </section>
+
+  </div>
+  <div class="story-dots" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+  </div>
+
+  <section class="download" id="download" data-pose="home">
+    <div class="copy">
+      <h2 class="reveal">Scarica DS5Mac.</h2>
+      <p class="reveal">Apri il file scaricato, trascina DS5Mac in Applicazioni e collega il controller via USB o Bluetooth. DS5Mac si aggiorna da sola e chiede prima di installare.</p>
+      <div class="reveal">
+        <a class="button" href="https://github.com/imellag/DS5Mac/releases/latest/download/DS5Mac.dmg">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M6 11l6 6 6-6M5 20h14"/></svg>
+          Scarica per Mac
+        </a>
+        <p class="meta">Versione 1.0 · 15 MB · macOS 15 o successivo · Italiano e inglese</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="faq" id="faq">
+    <div class="faq-inner">
+      <h2>Domande</h2>
+      <details><summary>Posso usare il controller della PS5 su Mac?</summary>
+        <p>Sì. macOS supporta il DualSense via Bluetooth e USB, e i giochi lo usano come qualsiasi controller. Quello che macOS non offre è un modo per cambiarne la lightbar, i grilletti adattivi o i LED: è quello che aggiunge DS5Mac.</p></details>
+      <details><summary>Come collego il DualSense al Mac?</summary>
+        <p>Via Bluetooth: tieni premuti i tasti PS e Crea finché la lightbar lampeggia, poi scegli DualSense Wireless Controller in Impostazioni di Sistema › Bluetooth. Via USB: collega un cavo USB-C.</p></details>
+      <details><summary>Le impostazioni restano attive mentre gioco?</summary>
+        <p>Sì. DS5Mac continua ad applicarle in secondo piano, con il gioco davanti. Se un gioco imposta da sé le luci o i grilletti, vale la sua impostazione finché la usa.</p></details>
+      <details><summary>DS5Mac può cambiare la vibrazione dei giochi?</summary>
+        <p>No. macOS non permette a un'altra app di cambiare quello che un gioco manda ai motori. DS5Mac prova i due motori e regola la forza dei propri effetti.</p></details>
+      <details><summary>DS5Mac è gratis? Raccoglie dati?</summary>
+        <p>È gratis, senza account, senza pubblicità e senza statistiche. L'unica connessione è il controllo giornaliero degli aggiornamenti, che non invia dati personali.</p></details>
+      <details><summary>Su quali Mac funziona?</summary>
+        <p>macOS 15 Sequoia o successivo, su Mac con Apple Silicon o Intel.</p></details>
+      <details><summary>Come disinstallo DS5Mac?</summary>
+        <p>Chiudila dal suo pannello nella barra dei menu e sposta l'app da Applicazioni al Cestino. Le sue impostazioni sono nella cartella Libreria/Containers/com.imellag.DS5Mac della tua cartella Inizio.</p></details>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <div class="links">
+      <a href="changelog/">Novità</a>
+      <a href="https://github.com/imellag/DS5Mac/issues/new/choose">Segnala un bug</a>
+      <a href="https://github.com/imellag/DS5Mac">GitHub</a>
+      <a href="../" hreflang="en" lang="en">English</a>
+    </div>
+    <p>Privacy: DS5Mac non raccoglie nulla. La sua unica connessione è il controllo giornaliero degli aggiornamenti. Questo sito non usa cookie né statistiche.</p>
+    <p>Modello 3D: "Dualsense Blender Project" di <a href="https://bluesassassins.gumroad.com/l/ggxgbo">bluesassassins</a>, <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.it">CC BY-SA 4.0</a>, adattato per DS5Mac.</p>
+    <p>DS5Mac è un progetto indipendente. Non è affiliato, approvato o sponsorizzato da Sony Interactive Entertainment. "PlayStation", "PS5" e "DualSense" sono marchi di Sony Interactive Entertainment Inc.</p>
+  </div>
+</footer>
+</body>
+</html>

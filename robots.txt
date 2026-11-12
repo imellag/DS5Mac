@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://imellag.github.io/DS5Mac/sitemap.xml

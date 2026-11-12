@@ -1,0 +1,49 @@
+# The bug report form of the public repository (ADR-0023). "Report a Bug…"
+# in DS5Mac's Help menu fills the four fields below through query items
+# named like their ids (DS5Mac/App/Diagnostics.swift): keep the ids in sync.
+name: Bug report
+description: Something in DS5Mac does not work as it should.
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Connect the controller over Bluetooth
+        2. Open the Lights screen
+        3. ...
+  - type: input
+    id: version
+    attributes:
+      label: DS5Mac version
+      description: Filled in when the report is opened from DS5Mac (Help > Report a Bug…).
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version
+    validations:
+      required: true
+  - type: input
+    id: mac
+    attributes:
+      label: Mac model
+  - type: input
+    id: controllers
+    attributes:
+      label: Controllers
+      description: Name, USB or Bluetooth, firmware, battery.
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots or a screen recording
+      description: Optional. Drag the files here.
